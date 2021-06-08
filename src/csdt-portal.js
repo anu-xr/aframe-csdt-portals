@@ -75,8 +75,9 @@ AFRAME.registerComponent('csdt-portal', {
 
     //create iframe
     const iframe = document.createElement('iframe');
-    iframe.src = data.href;
     document.body.appendChild(iframe);
+    iframe.src = data.href;
+    el.iframe = iframe;
 
     iframe.style.position = 'fixed';
     iframe.style.top = '0';
@@ -116,8 +117,8 @@ AFRAME.registerComponent('csdt-portal', {
     const data = this.data;
 
     if (data.has_iframe_loaded == false) {
-      if (el.websurface_iframe) {
-        if (el.websurface_iframe.contentDocument) {
+      if (el.iframe) {
+        if (el.iframe.contentDocument) {
           data.has_iframe_loaded = true;
           el.emit('iframe loaded');
         }

@@ -6,8 +6,10 @@ AFRAME.registerComponent('csdt-portal', {
     title: { default: '' },
     width: { default: 1.5 },
     height: { default: 2.4 },
+    player: { default: '#player' },
     frameWidth: { default: 0.15 },
     enableFrame: { default: true },
+    skipTicks: { default: 3 },
   },
 
   init: function () {
@@ -15,12 +17,12 @@ AFRAME.registerComponent('csdt-portal', {
     const data = this.data;
     const sceneEl = el.sceneEl;
 
-    const dstOrigin = { x: 0, y: 10000, z: 0 };
-
+    data.dstOrigin = { x: 0, y: 100000, z: 0 };
     data.siteSendsThree = false;
     data.siteRecievesThree = false;
+
+    data.tickCount = 0;
     data.has_iframe_loaded = false;
-    el.object3D.position.y += data.height / 2;
 
     //portal title
     const title = document.createElement('a-text');
@@ -62,16 +64,49 @@ AFRAME.registerComponent('csdt-portal', {
     const dstId = 'dst' + Math.random().toString(36).substring(2, 15);
 
     const portalSrc = document.createElement('a-entity');
+    const elPostion = el.object3D.getWorldPosition(new THREE.Vector3());
+    portalSrc.setAttribute('position', {
+      x: elPostion.x,
+      y: elPostion.y,
+      z: elPostion.z,
+    });
     portalSrc.setAttribute('id', srcId);
-    el.appendChild(portalSrc);
+    sceneEl.appendChild(portalSrc);
 
     const portalDst = document.createElement('a-entity');
-    portalDst.setAttribute('position', dstOrigin);
+    portalDst.setAttribute('position', {
+      x: data.dstOrigin.x,
+      y: (data.dstOrigin.y += data.height / 2),
+      z: data.dstOrigin.z,
+    });
     portalDst.setAttribute('id', dstId);
-    el.appendChild(portalDst);
+    sceneEl.appendChild(portalDst);
 
-    portalSrc.setAttribute('portal', { destination: `#${dstId}`, width: data.width, height: data.height });
-    portalDst.setAttribute('portal', { destination: `#${srcId}`, width: data.width, height: data.height });
+    portalSrc.setAttribute('portal', {
+      destination: `#${dstId}`,
+      player: data.player,
+      width: data.width,
+      height: data.height,
+    });
+    portalDst.setAttribute('portal', {
+      destination: `#${srcId}`,
+      player: data.player,
+      width: data.width,
+      height: data.height,
+    });
+
+    //test cube
+    const tbox = document.createElement('a-box');
+    tbox.setAttribute('color', 'red');
+    tbox.setAttribute('position', { x: data.dstOrigin.x, y: data.dstOrigin.y - 0.5, z: data.dstOrigin.z + 3 });
+    sceneEl.appendChild(tbox);
+
+    //create child scene holder
+    el.holder = new THREE.Group();
+    el.object3D.add(el.holder);
+
+    //create scene loader
+    el.sceneLoader = new THREE.ObjectLoader();
 
     //create iframe
     const iframe = document.createElement('iframe');
@@ -87,17 +122,15 @@ AFRAME.registerComponent('csdt-portal', {
     iframe.style.overflow = 'none';
     iframe.style.display = 'none';
 
-    const CSDT = new CSDTParent(iframe);
+    const CSDT = (el.CSDT = new CSDTParent(iframe));
 
     //set up CSDT
     el.addEventListener('iframe loaded', () => {
       iframe.addEventListener('load', () => {
         //check for CSDT supprt
         CSDT.checkSupport().then(() => {
-          console.log('got support response');
           //open a portal
           CSDT.openPortal(true, true, true).then((d) => {
-            console.log(d);
             if (d.sendsThree == true) {
               //if the child site supports sending us threejs data
               data.siteSendsThree = true;
@@ -115,6 +148,10 @@ AFRAME.registerComponent('csdt-portal', {
   tick: function () {
     const el = this.el;
     const data = this.data;
+    const sceneEl = el.sceneEl;
+
+    data.tickCount += 1;
+    if (data.tickCount % data.skipTicks !== 0) return;
 
     if (data.has_iframe_loaded == false) {
       if (el.iframe) {
@@ -127,11 +164,30 @@ AFRAME.registerComponent('csdt-portal', {
 
     if (data.siteRecievesThree == true) {
       //send our three scene to the site
+      const ydoc = el.CSDT.ydoc;
       const scene = el.sceneEl.object3D.clone();
-      scene.children = scene.children.filter((child) => {
-        child.el.id !== 'player';
+
+      const ytext = ydoc.getText('three-parent');
+      ydoc.transact(() => {
+        ytext.delete(0, ytext.length);
+        ytext.insert(0, JSON.stringify(scene));
       });
-      if (Math.random() > 0.99) console.log(scene.children);
+    }
+
+    if (data.siteSendsThree == true) {
+      const ydoc = el.CSDT.ydoc;
+
+      const ytext = ydoc.getText('three-child');
+      if (ytext.toString()) {
+        const sceneJson = JSON.parse(ytext.toString());
+        el.holder.children = el.sceneLoader.parse(sceneJson).children;
+
+        el.holder.position.x = data.dstOrigin.x;
+        el.holder.position.y = data.dstOrigin.y;
+        el.holder.position.z = data.dstOrigin.z;
+
+        //if (Math.random() > 0.9) console.log(el.object3D);
+      }
     }
   },
 });

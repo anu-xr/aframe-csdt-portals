@@ -1,0 +1,35 @@
+{
+  "name": "aframe-csdt-portals",
+  "version": "0.1.0",
+  "homepage": "https://github.com/open-hubs/aframe-csdt-portals",
+  "description": "An aframe component for implementing cross-site portals using CSDT.",
+  "repository": "https://github.com/open-hubs/aframe-csdt-portals",
+  "author": "ryota-mitarai",
+  "license": "MIT",
+  "files": [
+    "dist/*.js*"
+  ],
+  "source": "src/export.js",
+  "main": "dist/aframe-csdt-portals.js",
+  "exports": "dist/aframe-csdt-portals.modern.js",
+  "module": "dist/aframe-csdt-portals.module.js",
+  "unpkg": "dist/aframe-csdt-portals.umd.js",
+  "peerDependencies": {
+    "aframe": "*"
+  },
+  "devDependencies": {
+    "microbundle": "^0.13.2"
+  },
+  "scripts": {
+    "build": "microbundle --globals aframe=AFRAME --external aframe",
+    "dev": "microbundle watch"
+  },
+  "keywords": [
+    "aframe",
+    "a-frame",
+    "csdt"
+  ],
+  "dependencies": {
+    "yjs": "^13.5.8"
+  }
+}

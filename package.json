@@ -4,7 +4,7 @@
   "homepage": "https://github.com/open-hubs/aframe-csdt-portals",
   "description": "An aframe component for implementing cross-site portals using CSDT.",
   "repository": "https://github.com/open-hubs/aframe-csdt-portals",
-  "author": "ryota-mitarai",
+  "author": "open-hubs",
   "license": "MIT",
   "files": [
     "dist/*.js*"

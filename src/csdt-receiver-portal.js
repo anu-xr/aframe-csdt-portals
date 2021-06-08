@@ -1,3 +1,5 @@
+import { CSDTChild } from './lib/csdt.module';
+
 AFRAME.registerComponent('csdt-receiver-portal', {
   schema: {
     title: { default: 'Return to Parent' },
@@ -8,9 +10,10 @@ AFRAME.registerComponent('csdt-receiver-portal', {
   },
 
   init: function () {
-    const CSDT = window.CSDT;
     const el = this.el;
     const data = this.data;
+
+    const CSDT = new CSDTChild();
 
     data.parentRecievesThree = false;
     data.parentSendsThree = false;
@@ -53,7 +56,7 @@ AFRAME.registerComponent('csdt-receiver-portal', {
     }
 
     //set up CSDT
-    el.addEventListener('CSDT-portal-open', (e) => {
+    document.addEventListener('CSDT-portal-open', (e) => {
       const d = e.detail;
 
       if (d.recievesThree == true) {

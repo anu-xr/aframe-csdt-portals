@@ -1,4 +1,4 @@
-import CSDTParent from './csdt/parent';
+import { CSDTParent } from './lib/csdt.module';
 
 AFRAME.registerComponent('csdt-portal', {
   schema: {
@@ -56,7 +56,7 @@ AFRAME.registerComponent('csdt-portal', {
 
     //create iframe
     const iframe = document.createElement('iframe');
-    iframe.src = data.url;
+    iframe.src = data.href;
     document.body.appendChild(iframe);
 
     iframe.style.position = 'fixed';
@@ -67,15 +67,14 @@ AFRAME.registerComponent('csdt-portal', {
     iframe.style.overflow = 'none';
     iframe.style.display = 'none';
 
-    el.iframe = iframe;
+    const CSDT = new CSDTParent(iframe);
 
     //set up CSDT
     el.addEventListener('iframe loaded', () => {
       iframe.addEventListener('load', () => {
-        const CSDT = (this.CSDT = new CSDTParent(iframe));
-
         //check for CSDT supprt
         CSDT.checkSupport().then(() => {
+          console.log('got support response');
           //open a portal
           CSDT.openPortal(true, true, true).then((d) => {
             console.log(d);

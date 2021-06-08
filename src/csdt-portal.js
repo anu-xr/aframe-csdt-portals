@@ -13,6 +13,9 @@ AFRAME.registerComponent('csdt-portal', {
   init: function () {
     const el = this.el;
     const data = this.data;
+    const sceneEl = el.sceneEl;
+
+    const dstOrigin = { x: 0, y: 10000, z: 0 };
 
     data.siteSendsThree = false;
     data.siteRecievesThree = false;
@@ -53,6 +56,22 @@ AFRAME.registerComponent('csdt-portal', {
       box4.setAttribute('scale', `${width + frameWidth * 2} ${height + frameWidth * 2} ${frameWidth / 2}`);
       el.appendChild(box4);
     }
+
+    //create portals
+    const srcId = 'src' + Math.random().toString(36).substring(2, 15);
+    const dstId = 'dst' + Math.random().toString(36).substring(2, 15);
+
+    const portalSrc = document.createElement('a-entity');
+    portalSrc.setAttribute('id', srcId);
+    el.appendChild(portalSrc);
+
+    const portalDst = document.createElement('a-entity');
+    portalDst.setAttribute('position', dstOrigin);
+    portalDst.setAttribute('id', dstId);
+    el.appendChild(portalDst);
+
+    portalSrc.setAttribute('portal', { destination: `#${dstId}`, width: data.width, height: data.height });
+    portalDst.setAttribute('portal', { destination: `#${srcId}`, width: data.width, height: data.height });
 
     //create iframe
     const iframe = document.createElement('iframe');

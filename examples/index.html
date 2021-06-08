@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <title>Example</title>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://unpkg.com/aframe-portals@1.0.0/dist/aframe-portals.umd.js"></script>
     <script src="../dist/aframe-csdt-portals.umd.js"></script>
   </head>
 
@@ -21,7 +22,7 @@
       </a-entity>
 
       <!--Portal-->
-      <a-entity id="portal" position="-3 0 -6" csdt-portal="href:page2.html; title:Page2.html"></a-entity>
+      <a-entity position="-3 0 -6" csdt-portal="href:page2.html; title:Page2.html"></a-entity>
 
       <!--Environment-->
       <a-sky color="#aff"></a-sky>

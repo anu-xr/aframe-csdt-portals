@@ -1,5 +1,4 @@
 import Base from './base';
-import * as Y from 'yjs';
 
 //manages connections as a child site
 export default class CSDTChild extends Base {
@@ -19,7 +18,7 @@ export default class CSDTChild extends Base {
     });
   }
 
-  //called to send data to the parent for their portal
+  //response to CSDT-portal-open
   responsePortalOpen(hasReturnPortal = false, sendsThree = false, recievesThree = false) {
     const data = {
       hasReturnPortal: hasReturnPortal,
@@ -28,11 +27,5 @@ export default class CSDTChild extends Base {
     };
     const response = new CustomEvent('CSDT-response-portal-open', { detail: data });
     parent.document.dispatchEvent(response);
-  }
-
-  //called to return the user to the parent site
-  portalReturn() {
-    const event = new CustomEvent('CSDT-portal-return');
-    parent.document.dispatchEvent(event);
   }
 }

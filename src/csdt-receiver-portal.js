@@ -1,9 +1,6 @@
-import CSDTParent from './csdt/parent';
-
-AFRAME.registerComponent('csdt-portal', {
+AFRAME.registerComponent('csdt-receiver-portal', {
   schema: {
-    href: { default: '' },
-    title: { default: '' },
+    title: { default: 'Return to Parent' },
     width: { default: 1.5 },
     height: { default: 2.4 },
     frameWidth: { default: 0.15 },
@@ -11,12 +8,13 @@ AFRAME.registerComponent('csdt-portal', {
   },
 
   init: function () {
+    const CSDT = window.CSDT;
     const el = this.el;
     const data = this.data;
 
-    data.siteSendsThree = false;
-    data.siteRecievesThree = false;
-    data.has_iframe_loaded = false;
+    data.parentRecievesThree = false;
+    data.parentSendsThree = false;
+
     el.object3D.position.y += data.height / 2;
 
     //portal title
@@ -54,42 +52,19 @@ AFRAME.registerComponent('csdt-portal', {
       el.appendChild(box4);
     }
 
-    //create iframe
-    const iframe = document.createElement('iframe');
-    iframe.src = data.url;
-    document.body.appendChild(iframe);
-
-    iframe.style.position = 'fixed';
-    iframe.style.top = '0';
-    iframe.style.left = '0';
-    iframe.style.width = '100%';
-    iframe.style.height = '100%';
-    iframe.style.overflow = 'none';
-    iframe.style.display = 'none';
-
-    el.iframe = iframe;
-
     //set up CSDT
-    el.addEventListener('iframe loaded', () => {
-      iframe.addEventListener('load', () => {
-        const CSDT = (this.CSDT = new CSDTParent(iframe));
+    el.addEventListener('CSDT-portal-open', (e) => {
+      const d = e.detail;
 
-        //check for CSDT supprt
-        CSDT.checkSupport().then(() => {
-          //open a portal
-          CSDT.openPortal(true, true, true).then((d) => {
-            console.log(d);
-            if (d.sendsThree == true) {
-              //if the child site supports sending us threejs data
-              data.siteSendsThree = true;
-            }
-            if (d.recievesThree == true) {
-              //if the child site supports recieving threejs data from us
-              data.siteRecievesThree = true;
-            }
-          });
-        });
-      });
+      if (d.recievesThree == true) {
+        data.parentRecievesThree = true;
+      }
+      if (d.sendsThree == true) {
+        data.parentSendsThree = true;
+      }
+
+      //send info back to parent
+      CSDT.responsePortalOpen(true, true, true);
     });
   },
 
@@ -97,22 +72,12 @@ AFRAME.registerComponent('csdt-portal', {
     const el = this.el;
     const data = this.data;
 
-    if (data.has_iframe_loaded == false) {
-      if (el.websurface_iframe) {
-        if (el.websurface_iframe.contentDocument) {
-          data.has_iframe_loaded = true;
-          el.emit('iframe loaded');
-        }
-      }
-    }
-
-    if (data.siteRecievesThree == true) {
-      //send our three scene to the site
+    if (data.parentRecievesThree == true) {
+      //send our three scene to the parent
       const scene = el.sceneEl.object3D.clone();
       scene.children = scene.children.filter((child) => {
         child.el.id !== 'player';
       });
-      if (Math.random() > 0.99) console.log(scene.children);
     }
   },
 });

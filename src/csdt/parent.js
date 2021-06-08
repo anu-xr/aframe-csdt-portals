@@ -1,5 +1,4 @@
 import Base from './base';
-import * as Y from 'yjs';
 
 //manages connections as a parent site
 export default class CSDTParent extends Base {
@@ -32,7 +31,7 @@ export default class CSDTParent extends Base {
       window.document.addEventListener('CSDT-response-portal-open', (e) => resolve(e.detail), { once: true });
 
       const data = {
-        recievesThree: hasThreeScene,
+        recievesThree: recievesThree,
         sendsThree: sendsThree,
       };
       const event = new CustomEvent('CSDT-portal-open', { detail: data });

@@ -1,4 +1,5 @@
 import { CSDTParent } from './lib/csdt.module';
+import { deepRemoveTypes } from './utils';
 
 AFRAME.registerComponent('csdt-portal', {
   schema: {
@@ -91,8 +92,8 @@ AFRAME.registerComponent('csdt-portal', {
     });
 
     //create child scene holder
-    el.holder = new THREE.Group();
-    el.object3D.add(el.holder);
+    const holder = (el.holder = new THREE.Group());
+    el.object3D.add(holder);
 
     //create scene loader
     el.sceneLoader = new THREE.ObjectLoader();
@@ -122,24 +123,29 @@ AFRAME.registerComponent('csdt-portal', {
           const ymap = ydoc.getMap('portal');
 
           ymap.observe(() => {
-            const childScene = ymap.get('childScene');
-            if (!childScene) return;
+            const childSceneJson = ymap.get('childScene');
+            if (!childSceneJson) return;
 
-            const spawnLocation = ymap.get('spawnLocation');
-            if (!spawnLocation) return;
+            const spawnLocationJson = ymap.get('spawnLocation');
+            if (!spawnLocationJson) return;
 
-            const spawnLocationParsed = JSON.parse(spawnLocation);
+            const spawnLocation = JSON.parse(spawnLocationJson);
 
-            const childSceneParsed = JSON.parse(childScene);
-            el.holder.children = el.sceneLoader.parse(childSceneParsed).children;
+            //filter child scene
+            const childScene = el.sceneLoader.parse(JSON.parse(childSceneJson));
+
+            const typeList = ['AmbientLight', 'DirectionalLight'];
+            const [filtered, removed] = deepRemoveTypes(childScene, typeList);
+
+            holder.children = filtered.children;
 
             const localOffset = el.object3D.localToWorld(new THREE.Vector3());
-            const spawnOffset = new THREE.Vector3(spawnLocationParsed.x, spawnLocationParsed.y, spawnLocationParsed.z);
+            const spawnOffset = new THREE.Vector3(spawnLocation.x, spawnLocation.y, spawnLocation.z);
             const origin = data.dstOrigin.clone().sub(localOffset).sub(spawnOffset);
 
-            el.holder.position.x = origin.x;
-            el.holder.position.y = origin.y;
-            el.holder.position.z = origin.z;
+            holder.position.x = origin.x;
+            holder.position.y = origin.y;
+            holder.position.z = origin.z;
           });
 
           //open a portal

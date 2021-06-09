@@ -7,7 +7,6 @@ AFRAME.registerComponent('csdt-receiver-portal', {
     height: { default: 2.4 },
     frameWidth: { default: 0.15 },
     enableFrame: { default: true },
-    skipTicks: { default: 3 },
   },
 
   init: function () {
@@ -15,12 +14,6 @@ AFRAME.registerComponent('csdt-receiver-portal', {
     const data = this.data;
 
     const CSDT = (el.CSDT = new CSDTChild());
-
-    data.parentRecievesThree = false;
-    data.parentSendsThree = false;
-
-    data.tickCount = 0;
-    el.object3D.position.y += data.height / 2;
 
     //portal title
     const title = document.createElement('a-text');
@@ -60,36 +53,22 @@ AFRAME.registerComponent('csdt-receiver-portal', {
     //set up CSDT
     document.addEventListener('CSDT-portal-open', (e) => {
       const d = e.detail;
+      const ydoc = CSDT.ydoc;
 
+      //if the parent site supports receiving three data
       if (d.recievesThree == true) {
-        data.parentRecievesThree = true;
-      }
-      if (d.sendsThree == true) {
-        data.parentSendsThree = true;
+        const ymap = ydoc.getMap('portal');
+
+        const spawnLocation = el.object3D.getWorldPosition(new THREE.Vector3());
+
+        ydoc.transact(() => {
+          ymap.set('childScene', JSON.stringify(el.sceneEl.object3D));
+          ymap.set('spawnLocation', JSON.stringify(spawnLocation));
+        });
       }
 
       //send info back to parent
       CSDT.responsePortalOpen(true, true, true);
     });
-  },
-
-  tick: function () {
-    const el = this.el;
-    const data = this.data;
-
-    data.tickCount += 1;
-    if (data.tickCount % data.skipTicks !== 0) return;
-
-    if (data.parentRecievesThree == true) {
-      //send our three scene to the parent
-      const ydoc = el.CSDT.ydoc;
-      const scene = el.sceneEl.object3D.clone();
-
-      const ytext = ydoc.getText('three-child');
-      ydoc.transact(() => {
-        ytext.delete(0, ytext.length);
-        ytext.insert(0, JSON.stringify(scene));
-      });
-    }
   },
 });

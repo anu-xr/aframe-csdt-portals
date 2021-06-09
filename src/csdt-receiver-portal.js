@@ -1,10 +1,12 @@
 import { CSDTChild } from './lib/csdt.module';
+import { deepRemoveIds } from './utils';
 
 AFRAME.registerComponent('csdt-receiver-portal', {
   schema: {
     title: { default: 'Return to Parent' },
     width: { default: 1.5 },
     height: { default: 2.4 },
+    player: { default: 'player' }, //id of the player
     frameWidth: { default: 0.15 },
     enableFrame: { default: true },
   },
@@ -59,10 +61,15 @@ AFRAME.registerComponent('csdt-receiver-portal', {
       if (d.recievesThree == true) {
         const ymap = ydoc.getMap('portal');
 
+        //filter scene
+        const sceneCpy = el.sceneEl.object3D.clone();
+        const [filtered, removed] = deepRemoveIds(el.sceneEl.object3D, [data.player]);
+        el.sceneEl.object3D = sceneCpy;
+
         const spawnLocation = el.object3D.getWorldPosition(new THREE.Vector3());
 
         ydoc.transact(() => {
-          ymap.set('childScene', JSON.stringify(el.sceneEl.object3D));
+          ymap.set('childScene', JSON.stringify(filtered));
           ymap.set('spawnLocation', JSON.stringify(spawnLocation));
         });
       }

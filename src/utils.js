@@ -27,3 +27,24 @@ export function deepRemoveTypes(obj, types, includeObj = false) {
   }
   return [obj, removed];
 }
+
+export function deepRemoveIds(obj, ids, includeObj = false) {
+  const removed = [];
+  if (includeObj == true) {
+    if (obj.el) {
+      if (ids.includes(obj.el.id)) {
+        removed.push(obj);
+        return [undefined, removed];
+      }
+    }
+  }
+  if (obj.children.length > 0) {
+    obj.children.forEach((child) => {
+      const [cObj, cRemoved] = deepRemoveIds(child, ids, true);
+      removed.push(...cRemoved);
+
+      if (!cObj) obj.remove(child);
+    });
+  }
+  return [obj, removed];
+}
